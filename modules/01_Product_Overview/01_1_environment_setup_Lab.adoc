@@ -38,6 +38,8 @@ image::images/cf_course_selection_project.png[]
 
 . Select `BXMS PAM` and then click *Order*:
 +
+**TODO: CHANGE IMAGE. STILL SHOWING Decision Manager!**
++
 image::images/bxms_pam_cf.png[]
 
 . In the next panel, click *Submit* in the lower right corner.
@@ -77,6 +79,8 @@ image::images/ocp-login.png[]
 
 * When you log in to the OpenShift Container Platform, expect to see the available projects in the right panel of the home screen:
 +
+**TODO: Change image. Shows Decision manager deployments.**
++
 image::images/projects-list.png[]
 
 . Select the project with the name similar to `bxms-pam-$GUID`.
@@ -86,6 +90,8 @@ image::images/projects-list.png[]
 . In the left panel of your Red Hat OpenShift Container Platform project home page, navigate to *Applications -> Deployments*.
 
 . Examine the three deployments and expect to see that they all have a status of `Active, 1 replica`:
++
+**TODO: Replace with PAM7 image. This still show DM7.**
 +
 image::images/initial_deployments.png[]
 
