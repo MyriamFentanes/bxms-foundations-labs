@@ -155,23 +155,28 @@ image::images/projects-list.png[]
 image::images/external-route-execution-server.png[]
 **TODO: UPDATE IMAGE!**
 
-. From the *Networking* section in the Decision Server pod, select one of the entries under *ROUTES External Traffic* and open the link in a new window.
-. By default the Decision Server route needs additional details about the information that you are requesting.
+. From the *Networking* section in the Process Server pod, select one of the entries under *ROUTES External Traffic* and open the link in a new window.
+. By default the Process Server route needs additional details about the information that you are requesting.
 * Expect to see a `Forbidden` message result:
 +
 image::images/execution-server-forbidden.png[]
+**TODO: UPDATE IMAGE**
 
 . Add `/docs` to the end of the URL in your browser route.
 * Expect to see the KIE server remote API reference documentation:
 +
 image::images/execution-server-rest-api.png[]
-. Navigate to the `[process_server_external_route]/services/rest/server/containers` route to confirm the existence of the `mortgages` container:
+. Navigate to the **KIE Server :: Core** section.
+. Click on the **GET /server/conainers** entry to expand the section.
+. Click on the *Try it out* button on the right.
+. Leave all the fields empty and click on the *Execute* button.
+. The *Server Response* section will show the response confirming the existence of the the `mortgage` container.
 +
-image::images/mortgages-container-execution-server.png[]
+image::images/swagger-get-containers.png[]
 +
 [NOTE]
 ====
-The `/services/rest/server/containers` endpoint of Process Server is a _secured resource_. This means that you need to present credentials to access the resource. You use the same credentials (`adminUser` for the username and `test1234!` for the password) that you used for entering Decision Central from the _Environment Setup Lab_ .
+The RESTful endpoint of Process Server are _secured resources_. This means that you need to present credentials to access the resource, for example when you press the _Execute_ button in the API documentation. You use the same credentials (`adminUser` for the username and `test1234!` for the password) that you used for entering Decision Central from the _Environment Setup Lab_ .
 ====
 
 
