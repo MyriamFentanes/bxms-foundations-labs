@@ -1,0 +1,182 @@
+:scrollbar:
+:data-uri:
+:toc2:
+:dm_template: link:https://raw.githubusercontent.com/gpe-mw-training/bxms_decision_mgmt_foundations_lab/master/resources/rhdm7-only.yaml[Decision Manager template]
+
+= Process Automation Manager Provision Lab
+
+TO-DO:  Need to update this lab for PAM
+
+.Goals
+* Provision the Process Automation Manager in an OpenShift environment
+
+:numbered:
+
+== Overview
+
+https://docs.google.com/document/d/1019DG5UFDKhOaycRJuZQBNayP_lXOUOpSr2NLk0Y0qQ/edit#heading=h.nvce08er2966
+
+
+The Red Hat Decision Manager product can be provisioned in either of the following environments:
+
+. Any combination of JVM, OS and application container detailed in the link:https://access.redhat.com/articles/3354301[Red Hat Decision Manager Support Configurations document].
++
+The installation procedure for this approach can be found in the link:https://access.redhat.com/documentation/en-us/red_hat_decision_manager/7.0/html-single/installing_red_hat_decision_manager_on_premise/index[supported product documentation].
++
+This lab does not discuss this installation approach.
+. In an OpenShift Container Platform environment
++
+The focus of this lab is on this approach.
++
+Related documentation on this installation procedure can also be found link:https://access.redhat.com/documentation/en-us/red_hat_decision_manager/7.0/html-single/deploying_red_hat_decision_manager_on_red_hat_openshift_container_platform/index[here].
+
+The Decision Manager product will be provisioned in a single remote Openshift project.
+For the purpose of this lab, this single remote OpenShift project is provided to you; you do not need to install the OpenShift Container Platform.
+
+== Register for access to an OpenShift Container Platform environment
+
+In this section of the lab, you register for the ability to create a project in your remote OpenShift lab environment.
+
+. In your browser, navigate to the link:https://labs.opentlc.com/[OPENTLC lab portal]:
++
+image::images/cf_home.png[]
+
+. Enter your OPENTLC username and password and click *Login*.
+. Navigate to *Services -> Catalogs -> OPENTLC OpenShift Labs -> OPENTLC OpenShift 3.7 Shared Access*:
++
+image::images/cf_ocp_item.png[]
+
+. Click *Order* in the panel on the right.
+
+. In the next panel, check the confirmation checkbox and then click *Submit* in the lower right corner.
+
+. Expect to receive an email with contents similar to the following:
++
+-----
+Your OTLC-ADM-jbride-redhat.com-PROD_SHARED_DEVELOPER_ENV-f044 has been provisioned.
+Please take note of your unique identifier, GUID: f044
+
+Access to the requested environment will be granted as soon as the environment deployment is complete.
+Your environment will be hosted in our shared cluster, accessible at: https://master.na37.openshift.opentlc.com
+-----
++
+This email confirms access to a remote OpenShift Container Platform environment.
+Please save this email.
++
+Pay particular attention to the URL of the OCP master node referenced in this email.
+You will be navigating to this OCP master node for the duration of this course.
+
+. Using your browser, log into the master node of the Openshift Container Platform mentioned in the lab confirmation email.
++
+Use your OPENTLC user credentials to authenticate.
+
+. In the top right the homepage, click the `Create Project` button:
++
+image::images/create_ocp_project.png[]
+
+. Fill in the pop-up form with the following values:
+
+.. *Name*: bxms-dm-manual-provision-<your initials>
+.. *Display Name*: Manually Provisioned Decision Manager
+.. *Description*: Manually Provisioned Decision Manager
+
+. Click on the new project and navigate to the following to view Quotas and Limit Ranges: `Resources -> Quota`
+.. The top section details the `ClusterQuota` assigned to your user account.
++
+It is set by the OpenShift system administrator to define resource limits at an aggregate level.
+.. The bottom section details the `LimitRange` automatically assigned to your OCP project.
++
+It also is set by the OpenShift system administrator to define limits and defaults on individual pods and containers.
+
+The clusterquota and limitranges assigned allow for a successfull deployment of Red Hat Decision Manager.
+
+Now that you have access to an OCP lab environment and have created a project, you are now prepared to provision the Red Hat Decision Manager product in that project.
+
+== Decision Manager template
+
+The Red Hat Decision Manager product includes an OpenShift template that defines all of the artifacts to be provisioned for a Decision Manager deployment.
+
+Templates are intended to be tweaked as needed by application developers.
+For the purpose of this lab, we'll use a {dm_template} that includes slight variations from the out of the box template.
+
+. Point your browser to the {dm_template} and save a copy to your local filesystem so that you can more easily study it.
+. Open the template in a text editor and notice the following about it:
+.. The majority of the template consists of a list of `objects:` (starting at around line 19) and a list of template `parameters` (starting at around line 531).
+.. There are two `DeploymentConfig` artifacts defined that when started will create two pods:
+... _rhdmcentr_ : This defines the details of your `Decision Central` web application.
+... _custom-kieserver_ : This defines the details of your _kie-server_ pod where your rule applications run.
++
+The customization made to it is that it is CORS enabled to allow a web application to invoke its REST API.
+
+. Study the template and test your understanding of the template by answering the following questions:
+.. Are the deployment configs defined in the template initially in a paused state?
+.. What are the values of the limits and requests specified for the _kie-server_ pod ?
+.. What are the values of the limits and requests specified for the _Decision Central_ pod ?
+.. What will be the userId and password to authenticate into the Decision Central web application ?
+
+ifdef::showscript[]
+
+Answers:
+
+endif::showscript[]
+
+== Provision
+
+. In the OpenShift web console, navigate to the homepage of your _Manually Provisioned Decision Manager_ project.
+. In the `Get started with your project` section, click the button: `Browse Catalog`
++
+image::images/browse_catalog.png[]
+. In the header of the page, click `Import YAML/JSON`
++
+image::images/click_yaml.png[]
+. Populate the form as follows:
+.. *Add to Project*: Select your project from the selection list.
+.. Click `Browse` and select the yaml based template that you previously downloaded to your local filesystem.
+. Once the `Create` button is enabled, click it.
++
+image::images/import_yaml.png[]
+. At the `Add Template` pop-up, ensure the `Process the Template` checkbox is checked and then click `Continue`.
+. Change the values of the following template parameters as follows:
+.. *Application Name*: rht
+.. *KIE Admin Password*: test1234!
+. Click `Create`
+
+== Verify
+
+. Return to the homepage of your `Manually Provisioned Decision Manager` project.
+. Navigate to: `Builds -> Builds`
++
+Notice that a build called `rht-custom-kieserver` should be in-progress and working toward completion.
+This build artifact layers the Decision Manager with CORS related configurations.
++
+image::images/ks_build.png[]
+. Once the `rht-custom-kieserver` build is in a completed status, navigate to: `Applications -> Deployments`
+. There should be two deployments list:
++
+.. `rht-kieserver`
+.. `rht-rhdmcentr`
+. For each of the deployments, start them by clicking on the deployment and in the `Actions` drop-down, select: `Resume Rollouts`
++
+image::images/resume_rollout.png[]
+. Check on the resultant pods by navigating to: `Applications -> Pods`.
++
+Notice that initially there are a couple of pods whose names include a suffix of: `*-deploy`.
+. After a few minutes, the `deploy` pods should terminate and you'll be left with two pods in a `Running` state
++
+image::images/running_pods.png[]
+
+. Return to the page in the OpenShift web console that provides details of your quotas and limit ranges.
++
+Notice that your Decision Manager deployment should be well within the limits defined by the ClusterQuota:
++
+image::images/cq_inuse.png[]
+
+. Review routes by navigating to: `Applications -> Routes`
+. Click on the link of the _Hostname_ associated with the route called:  `secure-rht-rhdmcentr`.
+. Accept the self-signed certificates and authenticate at the login prompt using:  `adminUser` / `test1234!`
+. Once you login you should be able to see the Decision Central Home perspective:
++
+image::images/dm_home.png[]
+
+== Conclusion
+Congratulations, during this lab you provisioned the Decision Manager product in an Openshift Container Platform environment.
