@@ -1,11 +1,10 @@
 :scrollbar:
 :data-uri:
 :toc2:
-:dm_template: link:https://raw.githubusercontent.com/gpe-mw-training/bxms_decision_mgmt_foundations_lab/master/resources/rhdm7-only.yaml[Decision Manager template]
+:pam_template: link:https://raw.githubusercontent.com/gpe-mw-training/bxms_decision_mgmt_foundations_lab/master/resources/rhdm7-only.yaml[Process Automation Manager template]
 
 = Process Automation Manager Provision Lab
 
-TO-DO:  Need to update this lab for PAM
 
 .Goals
 * Provision the Process Automation Manager in an OpenShift environment
@@ -14,12 +13,11 @@ TO-DO:  Need to update this lab for PAM
 
 == Overview
 
-https://docs.google.com/document/d/1019DG5UFDKhOaycRJuZQBNayP_lXOUOpSr2NLk0Y0qQ/edit#heading=h.nvce08er2966
+TO-DO:  Update these links for PAM once GA
 
+The Red Hat Process Automation Manager product can be provisioned in either of the following environments:
 
-The Red Hat Decision Manager product can be provisioned in either of the following environments:
-
-. Any combination of JVM, OS and application container detailed in the link:https://access.redhat.com/articles/3354301[Red Hat Decision Manager Support Configurations document].
+. Any combination of JVM, OS and application container detailed in the link:https://access.redhat.com/articles/3354301[Red Hat Process Automation Manager Support Configurations document].
 +
 The installation procedure for this approach can be found in the link:https://access.redhat.com/documentation/en-us/red_hat_decision_manager/7.0/html-single/installing_red_hat_decision_manager_on_premise/index[supported product documentation].
 +
@@ -30,7 +28,7 @@ The focus of this lab is on this approach.
 +
 Related documentation on this installation procedure can also be found link:https://access.redhat.com/documentation/en-us/red_hat_decision_manager/7.0/html-single/deploying_red_hat_decision_manager_on_red_hat_openshift_container_platform/index[here].
 
-The Decision Manager product will be provisioned in a single remote Openshift project.
+The Process Automation Manager product will be provisioned in a single remote Openshift project.
 For the purpose of this lab, this single remote OpenShift project is provided to you; you do not need to install the OpenShift Container Platform.
 
 == Register for access to an OpenShift Container Platform environment
@@ -42,7 +40,7 @@ In this section of the lab, you register for the ability to create a project in 
 image::images/cf_home.png[]
 
 . Enter your OPENTLC username and password and click *Login*.
-. Navigate to *Services -> Catalogs -> OPENTLC OpenShift Labs -> OPENTLC OpenShift 3.7 Shared Access*:
+. Navigate to *Services -> Catalogs -> OPENTLC Middleware Solutions Labs -> RHT PAM 7 Foundations*:
 +
 image::images/cf_ocp_item.png[]
 
@@ -76,9 +74,9 @@ image::images/create_ocp_project.png[]
 
 . Fill in the pop-up form with the following values:
 
-.. *Name*: bxms-dm-manual-provision-<your initials>
-.. *Display Name*: Manually Provisioned Decision Manager
-.. *Description*: Manually Provisioned Decision Manager
+.. *Name*: bxms-pam-manual-provision-<your initials>
+.. *Display Name*: Manually Provisioned Process Automation Manager
+.. *Description*: Manually Provisioned Process Automation Manager
 
 . Click on the new project and navigate to the following to view Quotas and Limit Ranges: `Resources -> Quota`
 .. The top section details the `ClusterQuota` assigned to your user account.
@@ -88,18 +86,76 @@ It is set by the OpenShift system administrator to define resource limits at an 
 +
 It also is set by the OpenShift system administrator to define limits and defaults on individual pods and containers.
 
-The clusterquota and limitranges assigned allow for a successfull deployment of Red Hat Decision Manager.
+The clusterquota and limitranges assigned allow for a successfull deployment of Red Hat Process Automation Manager.
 
-Now that you have access to an OCP lab environment and have created a project, you are now prepared to provision the Red Hat Decision Manager product in that project.
+Now that you have access to an OCP lab environment and have created a project, you are now prepared to provision the Red Hat Process Automation Manager product in that project.
 
-== Decision Manager template
+== Process Automation Manager template
 
-The Red Hat Decision Manager product includes an OpenShift template that defines all of the artifacts to be provisioned for a Decision Manager deployment.
+The Red Hat Process Automation Manager product includes a variety of OpenShift templates that define all of the artifacts to be provisioned for a Process Automation Manager deployment.
+
+=== PAM Template Overview
+
+Details of the list of templates offered are as follows:
+
+. *rhpam70-authoring.yaml*
++
+Description: An example of a recommended authoring environment for most customers where scalability and reliability requirements do not rise to levels justifying a high-availability setup.
+Technical Content: Single replica of business central configured to use a persistent volume, set up to tightly integrate with an instance of the KIE server, using business central as its Maven repo and persisting process data to H2, backed by a persistent volume.
+
+. *rhpam70-authoring-ha.yaml*
++
+Description: An example of a recommended highly-available authoring environment for most customers requiring significant scalability and reliability.
+Technical Content: Two default replicas of business central running on an EAP cluster, using elasticsearch and AMQ, and configured with a shared persistent volume, set up to tightly integrate with two replicas of the KIE server, using business central as its Maven repo and persisting process data to PostgreSQL.
+
+. *rhpam70-sit.yaml*
++
+Description: An example of a recommended integration testing environment for most customers.
+Technical Content: Single replica of business central monitoring, connected to a smart router, configured for two distinct sets of KIE servers, configured with an external Maven repo and  persisting to different instances of PostgreSQL.
+
+. *rhpam70-prod.yaml*
++
+Description: An example of a recommended production environment, with the expectation that a majority of current customers would run something very similar.
+Technical Content: Three default replicas of business central monitoring, configured for single sign-on with RH-SSO integration, connected to two replicas of the smart router, configured for two distinct sets of KIE servers, pointing to an external Maven repo and persisting to different instances of PostgreSQL.
+
+. *rhpam70-prod-immutable-monitor.yaml*
++
+Description: An example of a recommended production environment for an expected minority of customers who wish to run immutable containers that cannot be managed.
+Technical Content: Three default replicas of business central monitoring, configured for single sign-on with RH-SSO integration, connected to two replicas of the smart router, configured for connection to distinct sets of S2I KIE server images using container-local maven, that can be created through an associated template.
+
+. *rhpam70-prod-immutable-kieserver.yaml*
++
+Description: An immutable KIE server used optionally connecting to a monitoring console
+Technical Content: Two replica of KIE server using s2i to generate container-local maven data and persisting to PostgreSQL. May optionally point to a smart router and/or monitoring.
+
+. *rhpam70-trial-ephemeral.yaml*
++
+Description: A short-living trial environment that can be quickly and easily installed
+Technical Content: Business central with ephemeral local git tightly coupled to a KIE server using ephemeral H2 database and pointing to business central as its Maven service.
+
+. *rhpam70-kieserver-postgresql.yaml*
++
+Description: An example of a managed KIE server used with a monitoring console
+Technical Content: Single replica of KIE server with required configuration to use an external Maven service, and included PostgreSQL database. May optionally point to a smart router.
+
+. *rhpam70-kieserver-mysql.yaml*
++
+Description: An example of a managed KIE server used with a monitoring console
+Technical Content: Single replica of KIE server with required configuration to use an external Maven service, and included MySQL database. May optionally point to a smart router.
+
+. *rhpam70-kieserver-externaldb.yaml*
++
+Description: An example of a managed KIE server used with a monitoring console
+Technical Content: Single replica of KIE server with required configuration to use an external Maven service, and required configuration to persist to an external database. May optionally point to a smart router.
+
+These templates can be found link:https://github.com/jboss-container-images/rhpam-7-openshift-image/tree/rhpam70-dev/templates[here].
+
+=== Quiz
 
 Templates are intended to be tweaked as needed by application developers.
-For the purpose of this lab, we'll use a {dm_template} that includes slight variations from the out of the box template.
+For the purpose of this lab, we'll use a {pam_template} that includes slight variations from the out of the box rhpam70-authoring.yaml template.
 
-. Point your browser to the {dm_template} and save a copy to your local filesystem so that you can more easily study it.
+. Point your browser to the {pam_template} and save a copy to your local filesystem so that you can more easily study it.
 . Open the template in a text editor and notice the following about it:
 .. The majority of the template consists of a list of `objects:` (starting at around line 19) and a list of template `parameters` (starting at around line 531).
 .. There are two `DeploymentConfig` artifacts defined that when started will create two pods:
@@ -122,7 +178,7 @@ endif::showscript[]
 
 == Provision
 
-. In the OpenShift web console, navigate to the homepage of your _Manually Provisioned Decision Manager_ project.
+. In the OpenShift web console, navigate to the homepage of your _Manually Provisioned Process Automation Manager_ project.
 . In the `Get started with your project` section, click the button: `Browse Catalog`
 +
 image::images/browse_catalog.png[]
@@ -143,11 +199,11 @@ image::images/import_yaml.png[]
 
 == Verify
 
-. Return to the homepage of your `Manually Provisioned Decision Manager` project.
+. Return to the homepage of your `Manually Provisioned Process Automation Manager` project.
 . Navigate to: `Builds -> Builds`
 +
 Notice that a build called `rht-custom-kieserver` should be in-progress and working toward completion.
-This build artifact layers the Decision Manager with CORS related configurations.
+This build artifact layers the Process Automation Manager with CORS related configurations.
 +
 image::images/ks_build.png[]
 . Once the `rht-custom-kieserver` build is in a completed status, navigate to: `Applications -> Deployments`
@@ -167,7 +223,7 @@ image::images/running_pods.png[]
 
 . Return to the page in the OpenShift web console that provides details of your quotas and limit ranges.
 +
-Notice that your Decision Manager deployment should be well within the limits defined by the ClusterQuota:
+Notice that your Process Automation Manager deployment should be well within the limits defined by the ClusterQuota:
 +
 image::images/cq_inuse.png[]
 
@@ -179,4 +235,4 @@ image::images/cq_inuse.png[]
 image::images/dm_home.png[]
 
 == Conclusion
-Congratulations, during this lab you provisioned the Decision Manager product in an Openshift Container Platform environment.
+Congratulations, during this lab you provisioned the Process Automation Manager product in an Openshift Container Platform environment.
