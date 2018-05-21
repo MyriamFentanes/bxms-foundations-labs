@@ -85,6 +85,12 @@ At the top right of the tabular list of assets, there is a pagination control th
 . Find the page controller.
 . Navigate to the next page and back.
 
+=== Explore the Process Definition
+. In the Asset Library view, use the asset filter to filter on *Processes*
+. Open the `MortageApplication` process, this is the process we will be using in the remainder of this lab.
+. In the process designer, explore the process. Identify the different BPMN2 constructs used, like *Business Rule Task*, *Human Task*, *X-OR Gateway* and *Swimlane*.
+. Try to follow a process path from start to finish, and get a high-level understanding of the process semantics.
+
 == Download Project
 
 Projects can be exported so you can use them to upload to a source code repository and import them later into another instance of Business Central or distribute them outside the environment where they were created.
@@ -108,7 +114,7 @@ to trigger the download in your browser:
 +
 image::images/settings-gear.png[]
 * A ZIP file containing the package structure of your project is downloaded to your `Downloads` folder. The name of the ZIP file is structured like this: `[Space Name]-[Repository Name]_[project name].zip`.
-* Expect to find a file called `myteam_rhpam7-mortgage-demo-repo.zip` in your `Downloads` folder.
+* Expect to find a file called `MySpace_examples-rhpam7-mortgage-demo-repo.zip` in your `Downloads` folder.
 +
 [NOTE]
 In some cases, the file name may be missing a `[Space Name]-` prefix.
@@ -134,7 +140,6 @@ The `Mortgage Demo` demonstration project is a Process Automation Manager projec
 +
 image::images/servers-and-containers.png[]
 . Verify that the `mortgage_1` KIE container shows a green circle with a checkmark, indicating successful deployment.
-**TODO: REPLACE SCREENSHOT WITH AN UPDATED VERSION WITHOUT THE BUG THAT DOESN'T DISPLAY THE SERVER! (AND ONE THAT SHOWS OPENSHIFT)**
 +
 [NOTE]
 ====
@@ -148,7 +153,6 @@ image::images/ocp-login.png[]
 . Select the Process Automation Manager project from your project list:
 +
 image::images/projects-list.png[]
-**TODO: UPDATE IMAGE!**
 
 . Locate the Process Server deployment whose name begins with `gpte-kieserver` in the list and click the *>* icon to the left to display details of this deployment:
 +
@@ -180,15 +184,13 @@ The RESTful endpoint of Process Server are _secured resources_. This means that 
 ====
 
 
-
-
 == Execute Test Cases
 
 In this section, you execute a number of test scenarios:
 
-* An approved mortgage loan application
-* A loan application denied because the loan requester is not old enough
-* A loan application denied because the loan requester's credit history is not acceptable
+* A mortgage application with human task that requests increase of downpayment and manual appraisal. Mortgage will be accepted.
+* A mortgage application with human task that requests increase of downpayment and manager task to manually approve the appliction. Mortgage will be denied.
+
 
 === Test Approved Mortgage Loan Application
 
@@ -198,109 +200,182 @@ In this section, you use the following example data to generate an approved resp
 |=======================================
 |Field|Value
 |*Applicant Name*| `John Doe`
-|*Applicant Age*| `35`
-|*Credit Rate*| `AA`
-|*Bankruptcy Detected*| `False` (unchecked)
-|*Income Validated*| `True` (checked)
-|*Income Amount*| `70000`
-|*Income Type*| `Job`
-|*Loan Amount*| `25000`
-|*Deposit Max Amount*| `1500`
-|*Mortgage Rate*| `20`
+|*Social Security Number*| `123456789`
+|*Annual Income*| `70000`
+|*Property Address*| `Rotterdam, The Netherlands`
+|*Sale Price*| `240000`
+|*Mortgage Amortization*| `10`
+|*Down Payment*| `40000`
 |=======================================
 
-. If you do not see the *Mortgage Loan Evaluation* page, select the *Mortgages* option.
-. Enter the example data into the loan evaluation form:
-+
-image::images/approved-loan-data.png[]
+To test the process, navigate to the *Process Definitions* page in Business Central which lists all the process definitions deployed on the execution servers: The Business Central project library view is displayed when you click *Design* from the Business Central home page, or when you naviage the menu: *Menu -> Manage -> Process Definitions*.
 
+image::images/manage-process-definitions.png[]
+
+. To start a process instance, click on the kebab icon on the right of the MortgageApplication process definition and click on *Start*.
+. In the process start form, fill in the data as provided in the table above.
 . Click *Submit*.
-* Expect to see a pop-up dialog indicating that the loan is approved:
+* Expect to see a pop-up dialog indicating that a `Process Id: {x} started!`
+. The process instance has now started. You can examine the details of the process instance on the *Process Instances* page: *Menu -> Manage -> Process Instances*.
+* Click on the Mortgage Application process instance you've just started to go to the *details* page.
+* Click on the *Diagram* tab to show the process diagram.
+* The greyed-out nodes mark the nodes that have already been processed. The node in which the process is currently waiting is marked with a red border.
+
+image::images/mortgage-application-process-instance-diagram.png[]
+
+[start=5]
+. The process is waiting at the Human Task *Suggest Down Payment Increase*.
+. Navigate to the *Task Inbox* screen: *Menu -> Track -> Task Inbox*.
+. Click on the *Suggest Downpayment Increase* task to open the task form.
+. Click on *Claim*. This will assign the task to you and will remove the task from the task list other users in your group. This makes sure that only one person at a time can work on a certain task.
+. Click on *Start* to start working on the task. This will make the `Down Payment` textbox editable.
+. Increase the `Down Payment` to `100000` and click *Complete*.
+
+image::images/increase-downpayment.png[]
+
+[start=11]
+. Navigate back to the process instance: *Menu -> Manage -> Process Instances*.
+. Open the process instance and navigate to the diagram.
+. Observe that the process instance has progressed and is now waiting on the *Manually Appraise Borrower* task.
+
+image:images/mortgage-application-process-instance-diagram-appraisal.png[]
+
+[start=14]
+. Navigate to the *Task Inbox* screen: *Menu -> Track -> Task Inbox*.
+. Click on the *Manually Appraise Borrower* task to open the task form.
+. Click on *Claim*.
+. Click on *Start* to start working on the task. This will make the `Appraised Value` textbox editable.
+. Set the `Appraised Value` to `220000` and click *Complete*.
+
+image::images/manually-appraise-borrower.png[]
+
+[start=19]
+. Go back to the process instance page: *Menu -> Manage -> Process Instances*
+. Notice that the process instance is gone.
+. In the panel on the left of the screen, enable the *State > Completed* checkbox.
+
+image::images/process-instance-filter-state-completed.png[]
+
+[start=22]
+. Click on the completed process instance to open the details page.
+. Open the process instance diagram and observe that the mortgage has been approved.
+
+image::images/process-instance-diagram-mortgage-approved.png[]
+
+=== Examine Suggest Down Payment Increase task form
+
+In this section, we inspect the task form of the *Suggest Down Payment Increase* human task.
+
+. Log in in to Business Central .
+* If you have closed your Business Central browser tab and need additional instructions on how to access Business Central, refer to the section that reviews the OpenShift Container Platform components in the previous lab.
+. Navigate to the `Mortgage_Demo` project.
+. Set the filter in the Asset Library to *Form* and type *downpayment* in the search field
+. Open the *IncreaseDownPayment-taskform* form.
+. Observe the components on the left of the editor. These components can be dragged and dropped onto the canvas to quickly create and edit forms in WYSIWYG-style.
+. Click on the kebab icon on the canvas on the right of *Increase Down Payment* and click on *Edit*.
+. Observe the *Nested Form* field. This means that this form is actually defined by another, nested, form called *IncreaseDownPayment-Application-dataobjectform*.
+. Click on *Cancel*
+. Go back to the Asset Library and find and open the *IncreaseDownPayment-Application-dataobjectform*.
+. Open the *Model Fields* in the *Components* menu on the left side of the editor.
+. Observe the additional fields that can be added to the form. These are all fields of the `Application` data model.
+. Click on the kebab icon on the canvas on the right of *Down Payment*.
+. Change the text in the *Help Message* field to *Please increase down payment.* and click on *OK*.
+. Observe the *i* icon next to the *Down Payment* field.
+* However over this icon.
+* A pop-up should display with the text we've just entered.
+. Return to the Asset Library.
 +
-image::images/approved-loan-result.png[]
-. Click *OK* to dismiss the dialog.
+image::images/help-message-please-increase-downpayment.png[]
 
-=== Test Denied Loan Application Due to Applicant's Age
 
-In this section, you enter loan application data that generates a denied response from the engine. Then you examine the rule that causes the application to be denied.
+=== Test Reject Mortgage Application due to insufficient down payment.
 
-You use the following example data, where only the applicant's age is different from the previous example data:
+In this section, we will use the same mortgage application data as in the previous section.
+However, in this scenario, we will not increase the down payment, which now requires a manual approval from the manager.
+As a manager, we will reject the application.
+
+You use the same example data as in the previos test:
 
 [cols="2",options="header"]
 |=======================================
 |Field|Value
 |*Applicant Name*| `John Doe`
-|*Applicant Age*| `15`
-|*Credit Rate*| `AA`
-|*Bankruptcy Detected*| `False` (unchecked)
-|*Income Validated*| `True` (checked)
-|*Income Amount*| `70000`
-|*Income Type*| `Job`
-|*Loan Amount*| `25000`
-|*Deposit Max Amount*| `1500`
-|*Mortgage Rate*| `20`
+|*Social Security Number*| `123456789`
+|*Annual Income*| `70000`
+|*Property Address*| `Rotterdam, The Netherlands`
+|*Sale Price*| `240000`
+|*Mortgage Amortization*| `10`
+|*Down Payment*| `40000`
 |=======================================
 
-. Update the *Applicant Age* field to `15`, keeping the other data fields the same as the previous example.
 
+To test the process, navigate to the *Process Definitions* page in Business Central which lists all the process definitions deployed on the execution servers: The Business Central project library view is displayed when you click *Design* from the Business Central home page, or when you naviage the menu: *Menu -> Manage -> Process Definitions*.
+
+image::images/manage-process-definitions.png[]
+
+. To start a process instance, click on the kebab icon on the right of the MortgageApplication process definition and click on *Start*.
+. In the process start form, fill in the data as provided in the table above.
 . Click *Submit*.
-* Expect to see a pop-up dialog indicating that the loan is denied:
+* Expect to see a pop-up dialog indicating that a `Process Id: {x} started!`
+. The process instance has now started. You can examine the details of the process instance on the *Process Instances* page: *Menu -> Manage -> Process Instances*.
+* Click on the Mortgage Application process instance you've just started to go to the *details* page.
+* Click on the *Diagram* tab to show the process diagram.
+* The greyed-out nodes mark the nodes that have already been processed. The node in which the process is currently waiting is marked with a red border.
+
+image::images/mortgage-application-process-instance-diagram.png[]
+
+[start=5]
+. The process is waiting at the Human Task *Suggest Down Payment Increase*.
+. Navigate to the *Task Inbox* screen: *Menu -> Track -> Task Inbox*.
+. Click on the *Suggest Downpayment Increase* task to open the task form.
+. Click on *Claim*. This will assign the task to you and will remove the task from the task list other users in your group. This makes sure that only one person at a time can work on a certain task.
+. Click on *Start* to start working on the task. This will make the `Down Payment` textbox editable.
+. This time, we will not increase the down payment, but we'll simply click on *Submit*
+
+image::images/dont-increase-downpayment.png[]
+
+[start=11]
+. Navigate back to the process instance: *Menu -> Manage -> Process Instances*.
+. Open the process instance and navigate to the diagram.
+. Observe that the process instance has progressed and is now waiting on the *Review Financials Individually* task.
+
+image:images/process-instance-diagram-review-financials-individually.png[]
+
+[start=14]
+. Navigate to the *Task Inbox* screen: *Menu -> Track -> Task Inbox*.
+. Click on the *Review Financials Individually* task to open the task form.
+. Click on *Claim*.
+. Click on *Start* to start working on the task.
+. Scroll down to the bottom of the form. Leave the checkbox *Approve Mortgage* unchecked.
+. Click on *Complete*
+
+image::images/review-financials-individually.png[]
+
+[start=20]
+. Go back to the process instance page: *Menu -> Manage -> Process Instances*
+. Notice that the process instance is gone.
+. In the panel on the left of the screen, enable the *State > Completed* checkbox.
+
+image::images/process-instance-filter-state-completed.png[]
+
+[start=22]
+. Click on the completed process instance to open the details page.
+. Open the process instance diagram and observe that the mortgage has been denied.
+
+image::images/process-instance-diagram-mortgage-denied.png[]
+=== Examine Denied Mortgage Application Sequence Flow condition
+
+In this section, we inspect the decision that causes the mortgage application to be denied.
+
+. Log in in to Business Central .
+* If you have closed your Business Central browser tab and need additional instructions on how to access Business Central, refer to the section that reviews the OpenShift Container Platform components in the previous lab.
+. Navigate to the `Mortgage_Demo` project.
+. Open the `Mortgage Application` process.
+. Find the *Review Financials Individually* human task.
+. Follow the sequence flow that leads out of that task to the gateway labeled *Positive Review?*
+. Click on the sequence flow out of that gateway that is labeled *Denied*.
+. If not open, open the `Properties` panel by clicking on the `<<` icon on the right side of the editor.
+. Click on the *Expression* property and in the editor field, click on the `∨` icon to open the editor.
+. Observe that this sequence flow is executed when the `brokerOverride` boolean is set to false. This boolean is the value set with the checkbox labeled *Approved Mortgage* in the *Review Financials Individually.
 +
-image::images/old-enough-result.png[]
-
-. Click *OK* to dismiss the dialog.
-
-=== Examine Denied Decision Rule
-
-In this section, you find the rule that is making the decision to deny the loan.
-
-. Log in in to Decision Central.
-* If you have closed your Decision Central browser tab and need additional instructions on how to access Decision Central, refer to the section that reviews the OpenShift Container Platform components in the previous lab.
-. Navigate to the `mortgages` project.
-. Search for `underage`.
-* Expect to see results similar to this:
-+
-image::images/underage-search.png[]
-. Click the `Underage` asset to open the `Underage.rdrl` file and examine its contents:
-+
-image::images/underage-rdrl.png[]
-
-=== Test Denied Loan Application Due to Bad Credit History
-
-As in the previous section, you enter loan application data that generates a denied response from the engine. Then you examine the rule that causes the application to be denied.
-
-You use the following example data, changing the applicant's age back to `35` and changing the credit rating from `AA` to `OK`:
-
-[cols="2",options="header"]
-|=======================================
-|Field|Value
-|*Applicant Name* | `John Doe`
-|*Applicant Age* | `35`
-|*Credit Rate* | `OK`
-|*Bankruptcy Detected* | `False` (unchecked)
-|*Income Validated* | `True` (checked)
-|*Income Amount* | `70000`
-|*Income Type* | `Job`
-|*Loan Amount* | `25000`
-|*Deposit Max Amount* | `1500`
-|*Mortgage Rate* | `20`
-|=======================================
-
-. Return to the `mortgages` web application page.
-
-. Enter the example data as shown or, if the previous form is still populated, change the applicant's age to `35` and set the credit rating to `OK`.
-. Click *Submit*.
-* Expect to see a pop-up dialog indicating that the loan is denied:
-+
-image::images/only-aa-result.png[]
-
-. Click *OK* to dismiss the dialog.
-
-=== Examine Denied Decision Rule
-
-In this section, you find the rule that made the decision to deny the loan.
-
-. Navigate to the `mortgages` project in Decision Central.
-. Search for `credit check`.
-. Click the `No bad credit checks` asset to open the `No bad credit checks.rdrl` file.
-. Examine the contents of the `No bad credit checks.rdrl` file.
+image::images/sequence-flow-broker-override-false.png[]
