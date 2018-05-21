@@ -34,7 +34,7 @@ With an empty project library view, you have the option to create a project, try
 In this lab we will use a sample to create a new Case Management project.
 
 . From the empty project library view, click *Try samples*. Or from a non-empty project library click on the right hand upper side and select *Try Samples*  
-* Expect to see an *Import Project* dialog where you specify a Git repository URL for the project.
+* You will be redirected to the samples page where you can select the sample project, in this case we will select the IT Orders Case management project.
 . In the *Import Project* dialog, enter `https://github.com/jbossdemocentral/rhpam7-mortgage-demo-repo` for *Repository URL* and click *Import*:
 +
 image::images/import_pamf_lab2.png[]
