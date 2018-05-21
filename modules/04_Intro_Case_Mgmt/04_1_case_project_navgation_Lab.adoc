@@ -2,7 +2,7 @@
 :data-uri:
 :toc2:
 
-== Assets Navigation Lab
+== Sample Case Project Navigation Lab
 
 This module showcases the new Case Management features supported in PAM 7 it will use the  Business Central environment provisioned during the _Environment Setup Lab_.n module 1.  The business assets are retrieved from the `IT Orders` sample project, one of the demonstration samples available.
 
@@ -35,35 +35,22 @@ In this lab we will use a sample to create a new Case Management project.
 
 . From the empty project library view, click *Try samples*. Or from a non-empty project library click on the right hand upper side and select *Try Samples*  
 * You will be redirected to the samples page where you can select the sample project, in this case we will select the IT Orders Case management project.
-. In the *Import Project* dialog, enter `https://github.com/jbossdemocentral/rhpam7-mortgage-demo-repo` for *Repository URL* and click *Import*:
+. Click ok after selecting the project, the sample project will be imported.
+* Inspect the assets in the project. Process, forms, data objects,etc. 
 +
 image::images/import_pamf_lab2.png[]
-* If the repository contains multiple projects, you will be asked which project you would like to import. In this case the repository only contains the `Mortgage Demo` project, which will be imported immedetialy.
-* When the import is completed, the project library view appears with the `Mortgage Demo` project selected:
-+
-image::images/mortgage-demo-project-library.png[]
 
-== Navigate Project Library
+== Navigate the Case Management Project
 
-The project library view shows a tabular list of the assets in the project.
-The tabular list allows the user to:
+The project library view shows a tabular list of the assets in the project. Select the process orderhardware.bpmn2 and inspect the properties. 
 
-* Filter assets by type.
-* Search for assets.
-* Navigate between asset pages.
-
-=== Filter assets by type
-At the top left of the tabular list of assets, you see drop-down list. The list allows you to filter the assets by type.
+=== Case project properties 
+The properties that are unique to  a Case Projec,are: AdHoc, Case ID Prefix and Case roles. Examine those in the IT Orders Case.
 
 image::images/filter_assets_by_type.png[]
 
-. Filter on `Process`
-. Filter on `Decision`
-. Filter on `Model`
-. Filter on `Form`
-. Set the filter to `All`
-
-=== Search for Assets
+Examine the name of the variables, when they are CaseFile variables. 
+=== Build and Deploy the Case.
 
 At the top of the tabular list of assets, you see a search input field.
 The grid is filtered by the asset's fully-qualified name, and the match is not case-sensitive.
