@@ -160,13 +160,27 @@ We want our rules to work on `client` and on `requiredDocuments`, as the rules e
 * *Data Type*: `Client`
 * *Source*: `client`
 . Add the following input mapping for the `requiredDocuments`:
-* *Name*: `client` (observe that this is the same name as the one used for the input variable)
-* *Data Type*: `Client`
-* *Source*: `client`
+* *Name*: `requiredDocuments` (observe that this is the same name as the one used for the input variable)
+* *Data Type*: `java.util.List`
+* *Source*: `requiredDocuments`
 . We now need to define the same output mapping to make sure the facts are retracted/deleted from the session when the rule task completes.
 The final mapping will look like this.
 +
 image::images/determine-documents-rule-task-io-mapping.png[]
+
+For this *Business Rule* task to function correctly, we need to add one other configuration. We insert the `requiredDocuments` variable into the rules session.
+However, at this stage of the process, this variable has not been initialized yet, and thus will be `null`. Therefore, the rules in our decision table will not match and fire.
+To solve this issue, we need to initialize this process variable before the rules are evaluated. There are multiple ways to do this. In this lab, we will use an *On Entry Actions* script
+on the *Business Rule* task to instantiate the process variable:
+
+. Open the `EnrichmentProcess` and click on the `Determine Documents` *Business Rule* task and open the properties panel.
+. Look for the *On Entry Actions* property and click on the *v* icon to open the *Expression Editor*. Add the following expression:
++
+....
+kcontext.setVariable("requiredDocuments",new java.util.ArrayList());
+....
+. Click on *OK* and save the process.
+
 
 == Configuring the Upload Documents Multi Instance Subprocesss
 Next we can configure the *Multi Instance Subprocess*. As said, we want an instance of this subprocess to be created for every required document defined in the `requiredDocuments` collection.
@@ -177,18 +191,6 @@ We also need a variable that can hold the uploaded document.
 
 . In the `EnrichmentProcess`, click on the `Upload Documents` *Multi Instance Subprocess* and open the properties panel.
 . Click on the *Variable Definitions* property. This allows one to configure the process variables for the subprocess.
-. Add the variable to store the name of the requiredDocument
-* *Name*: `requiredDocument`
-* *Defined Types*: `String`
-* *Custom Type*:
-* *Case File*: `false`
-* *KPI*: `false`
-. Add the variable to store the uploaded document
-* *Name*: `uploadedDocument`
-* *Defined Types*:
-* *Custom Type*: `org.jbpm.document.Document`
-* *Case File*: `false`
-* *KPI*: `false`
 . Add a third variable to keep track of whether the document has been approved.
 * *Name*: `approved`
 * *Defined Types*: `boolean`
@@ -220,7 +222,7 @@ Finally we need to implement the actual process logic of the *Sub Process*. The 
 === Creating the User Task for the client.
 
 . Create a *Start Event* in the subprocess.
-. Create a *User Task* node connected to the *Start Event*. Give it the *Name* `Upload Document` and *Task Name* `upload-document`.
+. Create a *User Task* node connected to the *Start Event*. Give it the *Name* `Upload Document - #{requiredDocument}` and *Task Name* `upload-document`. The `#{requiredDocument}` syntax in the name will be replaced at runtime with value of the `requiredDocument` process variable. This will allow us to show different task names, depending on the document the user is required to upload.
 . Set our `adminUser` as the tasks *Actors*. In an enterprise implementation this would be the user-id of the client in the PAM system so he/she will be the person who gets the task assigned.
 . Add the input mapping:
 * *Name*: `htRequiredDocument`
@@ -241,7 +243,7 @@ image::images/mi-after-upload-document-user-task.png[]
 === Creating the Document Approval User Task
 The idea behind the `Document Approval` *User Task* is that the document uploaded by the user needs to be approved and accepted by an internal employee before the process can continue.
 
-. Create a new *User Task* node connected to the `Upload Document` *User Task*. Give it the name `Approve Document` and *Task Name* `approve-document`.
+. Create a new *User Task* node connected to the `Upload Document` *User Task*. Give it the name `Approve Document - #{requiredDocument}` and *Task Name* `approve-document`. Again, the `#{requiredDocument}` placeholder will be replaced at runtime with the value of the `reuqiredDocument` process variable.
 . Set our `adminUser` as the tasks *Actors*. In an enterprise implememtation the task would be assigned to the group of employees qualified to approve these uploaded documents.
 . Add the input mapping:
 * *Name*: `htClient`
@@ -287,7 +289,7 @@ We now have the option to either set the decision logic on the *Sequence Flow* l
 We'll use latter option to show this specific construct in this lab.
 . Click on the *XOR* gateway on the right with the 2 outgoing flows and open the propeties panel.
 . Click on *Default Gate* and select the gate labelled `No`. Note that you will only see that text if you have properly labelled the outgoing connectors.
-If you have not labelled the conectors, you'll simply see their generated ids, which makes it default to verify whether you have configured the correct default gate.
+If you have not labelled the connectors, you'll simply see their generated ids, which makes it default to verify whether you have configured the correct default gate.
 
 Finally, save the process.
 
