@@ -65,7 +65,7 @@ image::images/place-order.png[]
 +
 image::images/task_node_variables.png[] 
 
-== Build and Deploy the Case.
+== Build and Deploy the Case project.
 
 . Navigate to the project home page, and build and deploy the project.
 +
@@ -73,9 +73,6 @@ image::images/build-deploy.png[]
 . Keep in mind that when you click on deploy, the project will be build and deployed for you.
 +
 image::images/deploy.png[]
-
-
-=== Execute the IT orders Case Project
 
 Navigate to the Manage section and go to Process Definitions.
 
@@ -85,6 +82,17 @@ image::images/it-order-definition.png[]
 . Select the process definition Order for IT Hardware and review the details of the process.
 +
 image::images/it-order-definition-detail.png[]
+
+=== Execute the IT orders Case Project
+To be able to interact with the process' User tasks we will need to create the groups that are defined in the Case. In case you don't have access to the project definition in the authoring view, you can see the groups needed in the process definition detail from the previous step. 
+
+[cols="1",options="header"]
+|=======================================
+|Roles|
+|*manager
+|*owner
+|*supplier
+|====================================== 
 
 == Download Project
 
