@@ -43,28 +43,25 @@ image::images/import_pamf_lab2.png[]
 == Navigate the Case Management Project
 
 The project library view shows a tabular list of the assets in the project. Select the process orderhardware.bpmn2 and inspect the properties. 
-
 === Case project properties 
 
 The properties that are unique to  a Case Project are: AdHoc, Case ID Prefix and Case roles. Examine those in the IT Orders Case.
 +
-image::images/filter_assets_by_type.png[]
+image::images/case-project-properties.png[]
 
 Examine the 'Place order' subprocess node:
 * Select  the node and click on the properties arrows in the upper right hand side. What are the variables passed from the main process?
 * Examine the name of the variables, when they are CaseFile variables.
-+
-image::images/import_pamf_lab2.png[]
 
 * Click on the subprocess node, the navigator will redirect you to the process place-order.bpmn2 definition.  
 * This particular process was authored using the new modeling tool in PAM7. So you can experience the new modeling capabilities coming in the platform. 
 +
-image::images/import_pamf_lab2.png[]
+image::images/place-order.png[]
 * Select the 'Place Order' user node and and then view the properties of the node. 
 * Navigate to the Implementation/Execution section in the properties.
 * Click on the assignments edit button and examine the varibles defined for this user node, obsereve the differences between the variable _hwSpec and requestor?
 +
-image::images/import_pamf_lab2.png[] 
+image::images/task_node_variables.png[] 
 
 == Build and Deploy the Case.
 
