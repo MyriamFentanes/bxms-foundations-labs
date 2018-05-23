@@ -178,7 +178,7 @@ image::images/running-instance-review-milestones.png[]
 +
 image::images/running-instance-review-document.png[]
 
-. Check the completion conditions for the process milestones and modify the variables accordingly to meet those conditions.
+. Check the completion conditions for the process milestones and review how the signaling works for those milestones.
 [NOTE] In a real life scenario, this would be done by the client application, using the API.
 
 +
