@@ -93,9 +93,9 @@ image::images/it-order-definition-detail.png[]
 [cols="1",options="header"]
 |=======================================
 |Roles|
-|*manager
-|*owner
-|*supplier
+|*manager|
+|*owner|
+|*supplier|
 |====================================== 
 
 . Create the roles in the settings configuration for your user, before instantiating the process.
