@@ -90,13 +90,10 @@ image::images/it-order-definition-detail.png[]
 
 .To be able to interact with the process' User tasks we will need to create the groups that are defined in the Case. In case you don't have access to the project definition in the authoring view, you can see the groups needed in the process definition detail from the previous step. 
 
-[cols="1",options="header"]
-|=======================================
-|Roles|
-|*manager|
-|*owner|
-|*supplier|
-|====================================== 
+Roles
+*manager
+*owner
+*supplier
 
 . Create the roles in the settings configuration for your user, before instantiating the process.
 +
