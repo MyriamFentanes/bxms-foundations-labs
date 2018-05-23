@@ -67,22 +67,24 @@ image::images/task_node_variables.png[]
 
 == Build and Deploy the Case.
 
-. At the top of the tabular list of assets, you see a search input field.
-The grid is filtered by the asset's fully-qualified name, and the match is not case-sensitive.
+. Navigate to the project home page, and build and deploy the project.
 +
-image::images/search_by_name.png[]
+image::images/build-deploy.png[]
+. Keep in mind that when you click on deploy, the project will be build and deployed for you.
++
+image::images/deploy.png[]
 
-. Search for `gdst`.
-. Search for `Mortage`.
-. Search for `Validate`.
-. Clear the search field.
 
-=== Navigate between asset pages
+=== Execute the IT orders Case Project
 
-At the top right of the tabular list of assets, there is a pagination control that allows the user to navigate between pages.
+Navigate to the Manage section and go to Process Definitions.
 
-. Find the page controller.
-. Navigate to the next page and back.
+. Find your process definition
++
+image::images/it-order-definition.png[]
+. Select the process definition Order for IT Hardware and review the details of the process.
++
+image::images/it-order-definition-detail.png[]
 
 == Download Project
 
