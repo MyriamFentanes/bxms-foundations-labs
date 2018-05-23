@@ -59,8 +59,11 @@ Examine the 'Place order' subprocess node:
 * This particular process was authored using the new modeling tool in PAM7. So you can experience the new modeling capabilities coming in the platform. 
 +
 image::images/place-order.png[]
+
 * Select the 'Place Order' user node and and then view the properties of the node. 
+
 * Navigate to the Implementation/Execution section in the properties.
+
 * Click on the assignments edit button and examine the varibles defined for this user node, obsereve the differences between the variable _hwSpec and requestor?
 +
 image::images/task_node_variables.png[] 
@@ -119,9 +122,27 @@ Fill the required information about your container-id and the process definition
 +
 image::images/api-definition-parameters.png[]
 
-Execute the call, you should see a reponse like the following, with the ID of your case instance.
+Execute the call, you should see a reponse like the following:.
 +
-image::images/api-definition-result-execute.png[]
+image::images/case-execute-error.png[]
+
+Execute the call again but, this time passing the required parameters to the process such as role assignments for the case. 
+[NOTE] 
+Change the parameters to match your user namme and roles created
+
+{"case-data" : {  },
+  "case-user-assignments" : {
+    "owner" : "john",
+    "manager" : "john"
+  },
+  "case-group-assignments" : {
+    "supplier" : "admin"
+ }
+}
+
+You should see a reponse lke the following, containing your case instance ID.ase-execute-success
++
+image::images/case-execute-success.png[]
 === Export Project
 
 To export the project, you start from Business Central's home page.
