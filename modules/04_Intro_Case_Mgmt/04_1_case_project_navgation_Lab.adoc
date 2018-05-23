@@ -84,7 +84,8 @@ image::images/it-order-definition.png[]
 image::images/it-order-definition-detail.png[]
 
 === Execute the IT orders Case Project
-To be able to interact with the process' User tasks we will need to create the groups that are defined in the Case. In case you don't have access to the project definition in the authoring view, you can see the groups needed in the process definition detail from the previous step. 
+
+.To be able to interact with the process' User tasks we will need to create the groups that are defined in the Case. In case you don't have access to the project definition in the authoring view, you can see the groups needed in the process definition detail from the previous step. 
 
 [cols="1",options="header"]
 |=======================================
@@ -94,10 +95,33 @@ To be able to interact with the process' User tasks we will need to create the g
 |*supplier
 |====================================== 
 
-== Download Project
+. Create the roles in the settings configuration for your user, before instantiating the process.
++
+image::images/create-roles.png[]
+. Save the changes to the security settings
++
+image::images/save-security-changes.png[]
 
-Projects can be exported so you can use them to upload to a source code repository and import them later into another instance of Business Central or distribute them outside the environment where they were created.
+=== Execute the case
 
+You can interact with your case process instance  using the REST endpoints in the API. Navigate to the API Swagger page and locate the Case Management section
++
+image::images/api-definition.png[]
+
+Locate the endpoint to start a case instance and click on Try it out!
++
+image::images/api-definition-start.png[]
+
++
+image::images/api-definition-try.png[]
+
+Fill the required information about your container-id and the process definition-id. Note that you can also pass variables to the case using json syntax.
++
+image::images/api-definition-parameters.png[]
+
+Execute the call, you should see a reponse like the following, with the ID of your case instance.
++
+image::images/api-definition-result-execute.png[]
 === Export Project
 
 To export the project, you start from Business Central's home page.
