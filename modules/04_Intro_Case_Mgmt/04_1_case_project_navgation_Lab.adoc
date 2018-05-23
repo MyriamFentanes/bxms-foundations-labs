@@ -86,7 +86,7 @@ image::images/it-order-definition.png[]
 +
 image::images/it-order-definition-detail.png[]
 
-=== Execute the IT orders Case Project
+== Execute the IT orders Case Project
 
 .To be able to interact with the process' User tasks we will need to create the groups that are defined in the Case. In case you don't have access to the project definition in the authoring view, you can see the groups needed in the process definition detail from the previous step. 
 
