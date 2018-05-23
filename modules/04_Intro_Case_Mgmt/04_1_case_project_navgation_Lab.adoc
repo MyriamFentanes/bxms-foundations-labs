@@ -12,7 +12,7 @@ You will build and deploy the project onto the the Process Server, the platform'
 Finally, you will explore the runtime process and task management using the process instance created in the previous step, to highlight the differences in the execution of a case.
 
 .Goals
-* Become familiar with business assets and their organization for a case project.
+* Become familiar with business Case Management business  assets and their organization for a case project.
 * Search for and open business assets for viewing and understanding the differences between a case and a project at configuration level.
 * Become familiar with the build and deployment process of a case 
 * Start a process instance and explore the REST api to interact with them. 
@@ -36,6 +36,8 @@ In this lab we will use a sample to create a new Case Management project.
 . From the empty project library view, click *Try samples*. Or from a non-empty project library click on the right hand upper side and select *Try Samples*  
 * You will be redirected to the samples page where you can select the sample project, in this case we will select the IT Orders Case management project.
 . Click ok after selecting the project, the sample project will be imported.
++
+image::images/import-itOrders.png[]
 * Inspect the assets in the project. Process, forms, data objects,etc. 
 +
 image::images/import_pamf_lab2.png[]
