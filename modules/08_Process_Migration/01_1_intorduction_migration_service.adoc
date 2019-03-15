@@ -26,7 +26,7 @@ image::images/process_migration_service.png[]
 This service is intended to be deployed standalone, adn just point it to the Execution Servers where the processes are running. It communicates through the API's using the REST endpoints
 
 
-== Create Process Variables
+== Process Migration Entities
 
 The 2 basic entities of the Migration service are:
 
