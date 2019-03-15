@@ -23,92 +23,37 @@ In this lab, you will use the new backend for process migration, that includes n
 
 image::images/process_migration_service.png[]
 
-We will first create the `Client` data object which we will use in our process and rules.
-
-. Open the `client-onboarding-enrichment` project.
-. Within the project's *Library* perspective
-* Click on *Add Asset*.
-* Click on *Data Object*.
-* In the dialog, give the object the name `Client`, don't alter the *Package* and leave the *JPA* checkbox unchecked.
-* Click *OK*
-image::images/client-data-object-dialog.png[]
-+
-. The *data object* editor will open. We will now define the fields (or attributes) of our `Client`. Click on the *+ add field* button.
-In the dialog add the following values to create the `id` field:
-* *Id*: `id`
-* *Name*: `ID`
-* *Type*: `long`
-. Click on *Create and Continue*, this will create the field and will immediately open a new dialog to create the next field.
-. We now create the `name` field:
-* *Id*: `name`
-* *Name*: `Name`
-* *Type*: `String`
-. The `type`. This defines the type of business.
-* *Id*: `type`
-* *Name*: `Type`
-* *Type*: `String`
-. Then the `bic` or Business Identifier Code:
-* *Id*: `bic`
-* *Name*: `Business Identifier Code`
-* *Type*: `String`
-. Next is   the `address`
-* *Id*: `address`
-* *Name*: `Address`
-* *Type*: `String`
-. After that the `country`:
-* *Id*: `country`
-* *Name*: `Country`
-* *Type*: `String`
-. Then the `phoneNumber`:
-* *Id*: `phoneNumber`
-* *Name*: `PhoneNumber`
-* *Type*: `String`
-. Finally we define the `creditScore`:
-* *Id*: `creditScore`
-* *Name*: `Credit Score`
-* *Type*: `int`
-. After creating this last field, click on *Continue* to create the last field and close the dialog.
-. If everything is correct, your data object should look like this.
-image::images/client-data-object-dialog.png[]
-+
-. Click on *Save* to save your model.
+This service is intended to be deployed standalone, adn just point it to the Execution Servers where the processes are running. It communicates through the API's using the REST endpoints
 
 
 == Create Process Variables
-In order to be able to use our `Client` data object in our process, we need to define a process variable this specific type.
 
-. Open the `EnrichmentProcess`, click anywhere on the white area in the canvas (this selects the process), and open the properties panel on the right hand side of the editor.
-. In the *Variable Definitions* property field, click on the *v* icon to open the variable definitions editor
-+
-image::images/variable-definitions-editor-designer-legacy.png[]
-. Click on the *Add Variable* button to add a variable. Give it the following values:
-* *Name*: `client`
-* *Defined Types*: `Client` (this is the type we created earlier)
-* *Custom Type*:
-* *Case File*: `false`
-* *KPI*: `false`
-. Add a variable. This will be the collection that will hold the names of the documents the client is required to provide.
-These document-names will be set by the rules (decision table) we imported earlier. This same collection will drive the multi-instance subprocess: for each entry in this collection (List), a subprocess instance will be created.
-* *Name*: `requiredDocuments`
-* *Defined Types*:
-* *Custom Type*: `java.util.List`
-* *Case File*: `false`
-* *KPI*: `false`
-. The documents uploaded by the user also need to be stored as part of the process. The multi-instance subprocess requires a collection (e.g. List) in which it can store these items.
-This collection is named the *Multi Instance Collection Output*. We therefore define the folliwing collection type.
-* *Name*: `uploadedDocumentsCollection`
-* *Defined Types*:
-* *Custom Type*: `java.util.List`
-* *Case File*: `false`
-* *KPI*: `false`
-. Finally, we need to store the uploadDocuments via the PAM DocumentStorageService in a Enterprise Content Management sytem. PAM comes with a pre-defined type that allows storage of a collection of Documents via its DocumentStorageService: `org.jbpm.document.Documents`. We therefore also define the following type:name: value
- * *Name*: `uploadedDocuments`
-* *Defined Types*:
-* *Custom Type*: `org.jbpm.document.Documents`
-* *Case File*: `false`
-* *KPI*: `false`
-+
-image::images/process-variables.png[]
+The 2 basic entities of the Migration service are:
+
+## Migration Plan
+
+Is a definition of how the migration will be performed. Includes the following information:
+
+* Plan ID (Generated)
+* Plan name
+* Plan description
+* Source and target container IDs
+* Node mappings (if any)
+
+## Migration
+
+Is the execution of a defined plan, applied to a set of process instances. These are the attributes that define a Migration:
+
+* Migration ID (Generated)
+* Plan ID
+* Instances to migrate.
+* Execution type
+    * Sync or Async
+    * Scheduled start time
+    * Callback URL
+
+
+
 
 We can now further improve the process by implementing the multi-instance sub-process and configuring the Business Rule task and User task.
 
