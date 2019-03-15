@@ -19,7 +19,9 @@ In this lab, you will use the new backend for process migration, that includes n
 
 :numbered:
 
-== Create the Client Data Object
+== Process Migration service
+
+image::images/process_migration_service.png[]
 
 We will first create the `Client` data object which we will use in our process and rules.
 
