@@ -1,0 +1,158 @@
+:scrollbar:
+:data-uri:
+:toc2:
+
+== Forms Lab
+
+In this lab, you will create the forms of the User Tasks that we have defined in our process, as well as the form to start the process.
+
+The PAM BPMN2 designer provides a very easy way to create Form definitions: it can automatically generate the start-form and the forms
+for all the user tasks defined in your process. The forms can of course also be manually created by clicking on the *Add Asset* button
+an choosing the *Form* asset type.
+
+In this lab we will use the easier option and have PAM generate the forms for us.
+
+. Open the `EnrichmentProcess`. In the editor, click on the *Generate all Forms* button the designer's menu.
++
+image::images/generate-forms-designer-legacy.png[]
+
+. Expect to see a green notification pop-up stating that the process and task forms have been generated.
+. Go back to the Asset Library view, click on the filter drop-down list and select *Form*.
++
+image::images/asset-library-form-filter.png[]
+
+. Five forms have been generated. One process start form, which will be used to, as te name implies, pass data to the process when a new process instance is started.
+There are three task forms. One for each *User Task* in our process. And the fifth form is a data object form for the *Client* data object.
+
+This last form is needed because the new Form Modeler only provides bindings for primitive types, Strings and numbers (Integer, Double, etc.) to Form fields.
+When a so called *Model Field* is a complex object, like *Client*, the Form Modeler will bind that field to a sub form, a form for that specific data-type.
+You can have more than one data object or data type form. For example, it might be that in one *User Task* form you want to only display a subset of the fields of a *Client*,
+and in another *User Task* form you want to display all the data. In that case, you can created 2 data object forms for the *Client* type, one for each *User Task*.
+
+Let's examine the process start form `src.EnrichmentProcess-taskform`.
+
+. Open the `src.EnrichmentProcess-taskform`. You'll see a simple, generated, form that allows us to enter the *Client* fields.
++
+image::images/generated-process-start-form.png[]
+
+. Click on the *Model Fields* category on the left-hand side of the editor. This shows all the process variables, or in the case of tasks, task-variables, that can be added to the form.
+. Click on the *Form Controls* category. This shows a rich set of out-of-the-box form controls that can be used in our form modeler using a WYSIWYG-style editing style.
+. Let's improve the start form a bit. There is 2 things that we want to change to this form:
+* Limit the fields we can fill in for a client. Note that in our process we ask the client to provide additional details.
+So let's limit the input of the client data to 4 fields: `name`, `country`, `type` and `creditscore`.
+* Add some HTML form controls to improve the look-and-feel of the form. We can for example add a title and an image.
+. First we will limit the values of our *Client* subform. Click on the kebab icon on the right in the *Client* section of the form and click *Edit*. This will open the edit menu for the `client` *Model Field*, the `client` process variable.
+* Observe that the *Field Type* is set to *SubForm*, and the *Nested Form* is the *Client* form.
+. At this point we can do 2 things, either change the *Client* form and remove the unwanted fields, or we create a new form for the *Client* data object.
+Since the *Client* form is used in other *User Task* forms as well, we choose to create a new data-object form for *Client*.
+. Go back to the project's Asset Librart by using the bread-crumb navigation and click on *Add Asset*.
+. Filter on *Form* and click on the *Form* asset tile.
+. Give it the *Name* `EnrichmentProcess-Client-dataobjectform`, leave the *Package* as is, and select *Data Object*.
+In the *Select Data Object from project* drop-down list select `com.myteam.client_onboarding_enrichment.Client` and click *OK*.
++
+image::images/create-start-process-client-form.png[]
+
+. In the Form Editor, click on the *Model Fields* category. This will list all the fields of our *Client* data object.
+. Drag the `name` field onto the canvas. This will open the *Field Properties* editor. Examine the options that it provides. We will use the default configuration for now, so click *OK*.
+. In the same way, add the other three fields: `country`, `type` and `creditScore`. Use the default properties, or try to add a *Help Message* or change the *PlaceHolder*.
++
+image::images/start-process-client-form.png[]
+
+. Save the form
+. Go back to the start process form `src.EnrichmentProcess-taskform`. Click again on the kebak icon next to *Client* to open the *Field Properties* for the `client` field of this form.
+. In the *Nested Form* drop-down list, select the form we just created: `EnrichmentProcess-Client-dataobjectform` and click *OK*.
+. The form layout will change and now only shows the input fields we require when we start the process.
+. Save the form.
+
+We will now add some additional HTML components to improve the look-and-feel of our form.
+
+. Click on the *Form Controls* category.
+. Drag the HTML component to the top of the form. This will open the HTML editor.
+. Use a *H1* header (called *big title* in the editor) to increase the font, center the text and make it bold. Add the following text: *Add a New Client*.
+. Add a second HTML component just under the first one. Click on the *Insert image* icon in the HTML editor and point it to the following image: http://static.opendigitalautomation.com/fortress_bank_and_loan-logo.png
+. Underneath the image, add the text "Fortress: Bank & Loan". Close the editor. The form should look somewhat like this:
++
+image::images/fortress-bank-and-loan-start-process-form.png[]
+
+In this lab, we will use the auto-generated forms for the other *User Tasks*. Of couse, if you want to, you can edit and change them as well using the same procedures we used on the start form.
+
+
+
+== Running the Process
+With the entire project complete, from data objects, to rules, processes and forms, it's now time to deploy our project on the *Process Server*/*Execution Server*/*KIE Server*.
+
+Red Hat Process Automation Manager uses Maven for project builds. The project assets are packaged in a component called a KJAR or Knowledge JAR.
+The KJAR is a Java JAR file with a specific deployment-descriptor, `kmodule.xml`, which you can find in the JAR files `META-INF` directory.
+
+When Business Central has built the KJAR, it will deploy it to the internal Maven Repository in Business Central. This repository can be accessed by going to the *Administation* page.
+This page can be accessed by clicking on the gear icon in the upper right corner of Business Central.
+
+image::images/business-central-admin-button.png[]
+
+In the *Settings* screen, click on the *Artifacts* tile to open the internal Maven repository administration page. Whenever you succesfully build a project in Business Central, the artifact will be stored in this repository.
+
+Go back to the *Asset Library* of your `client-onboarding-enrichment` project. Next, open the project's *Settings* page by click on the *Settings* tab in the upper left corner of the library view/perspective.
+
+image::images/project-settings-business-central.png[]
+
+The *Settings* screen allows us to change a lot of aspects of our project, including the project's name, GAV (GroupId, ArtifactId and Version, which make up the unique identifier of the project's KJAR), Deployment configurations (Runtime Strategy, Marshallers, etc.)
+
+=== Building and Deploying Your Project
+
+Go back to the *Asset Library* by clicking on the *Asset* tab in the upper left corner of the editor. We will now build and deploy the project onto the Process Server (KIE Server) runtime.
+
+. In the upper right corner of the *Assset Library* screen, click on *Deploy*. This will initialize a build, create a KJAR, push the KJAR in to the Business Central Maven repository and deploy the KJAR onto the Process Server/KIE Server.
+* If a dialog appears that states that you have conflicting repositories, simply click on *Override*.
+. Expect a pop-up to appear stating that the build and deployment are succesful.
+. Navigate to the *Execution Server* page by clicking *Menu -> Deploy -> Execution Servers*. The page should show your *Execution Server*, and your `client-onboarding-enrichment_1.0.0` should be listed in the *Deployment Units* section.
+Furthermore, the UI should show a box with a green checkmark, indicating that the *KIE Container* is running on your *KIE Server/Process Server*.
+
+=== Testing the Process
+Now that we've deployed the process on the *Execution Server*, we can start an instance of our process and test the flow.
+
+. Navigate to the *Process Definitions* page by clicking on *Menu -> Manage -> Process Definitions*.
+. The *Process Definitions* page lists all the processes that have been deployed on the execution servers connected to Business Central. In this case, it should show the `EnrichmentProcss` in our `client-onboarding-enrichment_1.0.0` KJAR.
++
+image::images/process-definitions-enrichment-process.png[]
+
+. We can start the process by clicking on the kebab icon on the right side of the process definition and clicking on start.
++
+image::images/start-enrichment-process.png[]
+
+. Our start form should pop-up, allowing us to specify the details of the client we want to sign up. Use the following values and click on *Submit*:
+* *Name*: `Acme Corp`
+* *Country*: `US`
+* *Type*: `MEDIUM`
+* *Credit Score*: `350`
+
+. Once the process has started, navigate to the *Process Instances* page by clicking on *Menu -> Manage -> Process Instances*. The table should show a single entry, the `EnrichmentProcess` instance we have just started.
++
+image::images/enrichment-process-instance.png[]
+
+. Click on the process instance, this will open the process instance details page. Navigate through the various tabs on this screen to explore the functionality. Some of the functionalities include:
+* Viewing the current values of the process variables.
+* Editing process variables.
+* Displaying the BPMN2 diagram that shows the current state of the process instance.
+* Inspecting the business and technical logs of the process instance.
+. Inspect the process diagram. The process is waiting on a number of tasks that need to be completed. One of these tasks is the `Add Client Details` task.
+. Navigate to the *Task Inbox* page by clicking on *Menu -> Track -> Task Inbox*. The list will show 2 tasks:
+* `Add Client Details` task: the task to add additional clients.
+* `Upload Document - ID`: an `Upload Document` task for an *ID* document.
+* `Upload Document - Bank Statement`: the same `Upload Document` task, but this time for a *Bank Statement*
++
+image::images/enrichment-process-human-tasks.png[]
+
+. Click on the `Add Client Details` task to open the task details page. Observe that this page is the page generated by the Form Modeler.
+. Click on *Start* button at the bottom of the page to start working on the task.
+. Add values for the following fields: `Business Identifier Code`, `Phone Number` and `Address`. You can use any value you like.
+. Click on *Complete* to complete the task.
+. Go back to the process instance details page of this process instance and open the process
+
+image::images/process-instance-after-add-client-details-task.png[]
+
+
+
+
+
+
+image::images/enrichment-process-human-tasks.png[]
