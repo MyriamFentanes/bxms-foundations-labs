@@ -40,7 +40,7 @@ Is a definition of how the migration will be performed. Includes the following i
 * Source and target container IDs
 * Node mappings (if any)
 
- Migration
+Migration
 
 Is the execution of a defined plan, applied to a set of process instances. These are the attributes that define a Migration:
 
