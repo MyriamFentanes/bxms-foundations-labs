@@ -30,7 +30,7 @@ This service is intended to be deployed standalone, adn just point it to the Exe
 
 The 2 basic entities of the Migration service are:
 
-## Migration Plan
+Migration Plan
 
 Is a definition of how the migration will be performed. Includes the following information:
 
@@ -40,7 +40,7 @@ Is a definition of how the migration will be performed. Includes the following i
 * Source and target container IDs
 * Node mappings (if any)
 
-## Migration
+ Migration
 
 Is the execution of a defined plan, applied to a set of process instances. These are the attributes that define a Migration:
 
