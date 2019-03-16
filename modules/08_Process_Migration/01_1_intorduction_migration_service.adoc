@@ -23,7 +23,7 @@ In this lab, you will use the new backend for process migration, that includes n
 
 image::images/process_migration_service.png[]
 
-This service is intended to be deployed standalone, adn just point it to the Execution Servers where the processes are running. It communicates through the API's using the REST endpoints
+This service is intended to be deployed standalone, and just point it to the Execution Servers where the processes are running. It communicates using the REST endpoints of the Kie Server.
 
 
 == Process Migration Entities
@@ -87,178 +87,337 @@ Start the server on a different ports:
 ```
 $ java -jar target/process-migration-thorntail.jar -Dswarm.network.socket-binding-groups.standard-sockets.port-offset=10
 ```
+# Configuration
 
-. In the `Enrichment Process`, click on the `Add Client Details` *User Task* and open the properties panel.
-. Click in the *Assignments* field on the *v* icon to open the *I/O Assignment* editor.
-. Click on *+Add* next the *Data Inputs and Assignments* field. Add the following values:
-* *Name*: `htClient` (the letters `ht` in this case is simply a prefix that stands for *human task*. You can use any variable name you like)
-* *Data Type*: `Client`
-* *Source*: `client`
-What this defines is that when this user task starts, we want to map the process instance variable `client` onto the user task variable `htClient`.
-. We want the client to update his/her details as part of this task. We therefore also need to define an output variable. Because the Forms in PAM
-can only map a form-field or subform to a single variable, if we want to use the same fields for displaying and updating client data, we need to
-define an output variable that has the same name as the input variable. So, in our case we define the following output variable:
-* *Name*: `htClient` (observe that this is the same name as the one used for the input variable)
-* *Data Type*: `Client`
-* *Source*: `client`
-This will map the changes made to the `htClient` task variable back to the `client` process variable.
-+
-image::images/add-client-details-user-task-io-mapping.png[]
-+
-. We also need to assign the task to an actor and/or group. This defines which users can be the potential owner of a task and thus can work on it.
-As this is an example lab, we will simply set the value of *actor* to our own username: `adminUser`.
-+
-image::images/add-client-details-user-task-properties.png[]
+Default configuration is as follows:
 
-== Configuring the Determine Documents Business Rule Task
-The rules in our `Determine Documents` *Business Rule* task need to reason over data. As with the user task, we therefore need to define
-an I/O mapping of process variables to task variables. In the case of a business rule task, the variables defined in the input mapping
-will be inserted in the so called *Knowledge Session* (or *Working Memory*) of the rules as so called *facts*. This allows the rules to match on and reason
-over these facts. Variables defined in the output mapping will be retracted from the *Knowledge Session* when the task has finished.
-This is important, as by default, multiple *Business Rule* tasks in the same process will share a single *Knowledge Session*. Retracting
-facts after a *Business Rule* task has finished is therefore good practice in order to prevent unwanted cross-talk and between different rule tasks and with
-that, unexpected results of rule evaluations.
+```
+thorntail:
+  deployment:
+    process-migration.war:
+      jaxrs:                   (1)
+        application-path: /
+      web:                     (2)
+        login-config:
+          auth-method: BASIC
+          security-domain: pim
+        security-constraints:
+          - url-pattern: /*
+            roles: [ admin ]
+          - url-pattern: /health/*
+  datasources:                 (3)
+    data-sources:
+      pimDS:
+        driver-name: h2
+        connection-url: jdbc:h2:mem:test;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+        user-name: sa
+        password: sa
+  ejb3:                        (4)
+    timer-service:
+      default-data-store: timers-store
+      database-data-stores:
+        timers-store:
+          datasource-jndi-name: java:jboss/datasources/pimDS
+          partition: timer
+  security:
+    security-domains:
+      pim:                     (5)
+        classic-authentication:
+          login-modules:
+            UsersRoles:
+              code: UsersRoles
+              flag: required
+              module-options:
+                usersProperties: application-users.properties
+                rolesProperties: application-roles.properties
+```
 
-We want our rules to work on `client` and on `requiredDocuments`, as the rules evaluate the `client` (and its fields) and will add one or more entries to the `requiredDocuments` collection as a result of the rule evalution.
+1. Deploy the application in the root path
+1. Configure Basic authentication for the application. Only the admin role is allowed to access the API. The `health` endpoint is available to anyone
+1. H2 inmemory datasource. Override it by one of your choice
+1. EJB Timers persistence configuration
+1. Properties based authentication. Default admin user/password is `kermit`/`thefrog`
 
-. In the `EnrichmentProcess`, click on the `Determine Documents` *Businesss Rule* task and open the properties panel.
-. Add the following input mapping for the `client`:
-* *Name*: `client` (observe that this is the same name as the one used for the input variable)
-* *Data Type*: `Client`
-* *Source*: `client`
-. Add the following input mapping for the `requiredDocuments`:
-* *Name*: `requiredDocuments` (observe that this is the same name as the one used for the input variable)
-* *Data Type*: `java.util.List`
-* *Source*: `requiredDocuments`
-. We now need to define the same output mapping to make sure the facts are retracted/deleted from the session when the rule task completes.
-The final mapping will look like this.
-+
-image::images/determine-documents-rule-task-io-mapping.png[]
+## Configuration overrides
 
-For this *Business Rule* task to function correctly, we need to add one other configuration. We insert the `requiredDocuments` variable into the rules session.
-However, at this stage of the process, this variable has not been initialized yet, and thus will be `null`. Therefore, the rules in our decision table will not match and fire.
-To solve this issue, we need to initialize this process variable before the rules are evaluated. There are multiple ways to do this. In this lab, we will use an *On Entry Actions* script
-on the *Business Rule* task to instantiate the process variable:
+It is possible to override or extend the provided configuration.
 
-. Open the `EnrichmentProcess` and click on the `Determine Documents` *Business Rule* task and open the properties panel.
-. Look for the *On Entry Actions* property and click on the *v* icon to open the *Expression Editor*. Add the following expression:
-+
-....
-kcontext.setVariable("requiredDocuments",new java.util.ArrayList());
-....
-. Click on *OK* and save the process.
+### Defining KIE Servers
 
+The right way to configure the connection to one or more KIE Servers in order to perform the migrations, a list of kieservers should exist in the configuration file.
 
-== Configuring the Upload Documents Multi Instance Subprocesss
-Next we can configure the *Multi Instance Subprocess*. As said, we want an instance of this subprocess to be created for every required document defined in the `requiredDocuments` collection.
-Also, each uploaded document needs to be added to the `uploadedDocumentsCollection` when the subprocess instances finish.
+```
+kieservers:
+  - host: http://kieserver1.example.com:8080/kie-server/services/rest/server
+    username: joe
+    password: secret
+  - host: http://kieserver2.example.com:8080/kie-server/services/rest/server
+    username: jim
+    password: secret
+```
 
-First we need to define the process variables of our subprocess. We need a variable that holds the name of the document that needs to be uploaded in the specific subprocess instance.
-We also need a variable that can hold the uploaded document.
+### MySQL Datasource
 
-. In the `EnrichmentProcess`, click on the `Upload Documents` *Multi Instance Subprocess* and open the properties panel.
-. Click on the *Variable Definitions* property. This allows one to configure the process variables for the subprocess.
-. Add a third variable to keep track of whether the document has been approved.
-* *Name*: `approved`
-* *Defined Types*: `boolean`
-* *Custom Type*:
-* *Case File*: `false`
-* *KPI*: `false`
-+
-image::images/multi-instance-subprocess-variables.png[]
+```
+thorntail:
+  datasources:
+    data-sources:
+      pimDS:
+        driver-name: mysql
+        connection-url: jdbc:mysql://mysql.example.com:3306/pimdb?useUnicode=true&useSSL=false&serverTimezone=UTC
+        user-name: pim
+        password: pim
+```
 
-We can now configure the multi-instance properties.
+_Refer to the [Thorntail Datasource](https://docs.thorntail.io/2.2.1.Final/#creating-a-datasource_thorntail) configuration for further details_
 
-. In the properties panel of the `Upload Documents` *Multi Instance Subprocess*
-. Set the followig properties:
-* *MI collection input*: `requiredDocuments` : this is the input collection. For each entry in this collection, a subprocess will be created.
-* *MI collection output*: `uploadedDocuments` : the output collection. Each subprocess instance will store, upon completion,  the variable defined in the *MI data output* in this collection.
-* *MI data input*: `requiredDocument`: the name of the variable to which the entry in the input collection for which this subprocess is created should map.
-* *MI data output*: `uploadedDocument`: the variable that should be collected on completion of the subprocess and which should be stored in the *MI colletion output*.
+# Usage
 
-image::images/multi-instance-subprocess-properties.png[]
+## Define the plan (without node mappings)
 
-== Implementing the Upload Documents Multi Instance Subprocess
-Finally we need to implement the actual process logic of the *Sub Process*. The logic of the subprocess is as follows:
-. The client gets a task to upload the requested document.
-. An employee of the financial service provider gets the task to verify the uploaded document.
-. When the document is approved, the subprocess finishes
-. When the document is not approved, the user task for the client is re-activated/re-created.
+Request:
 
+```
+URL: http://localhost:8180/plans
+Method: POST
+HTTP Headers:
+  Content-Type: application/json
+  Authorization: Basic a2VybWl0OnRoZWZyb2c=
+Body:
+{
+    "name": "Test plan",
+    "description": "Evaluation Process Test Plan",
+    "sourceContainerId": "evaluation_1.0",
+    "targetProcessId": "evaluation",
+    "targetContainerId": "evaluation_1.1"
+}
+```
 
-=== Creating the User Task for the client.
+Response:
 
-. Create a *Start Event* in the subprocess.
-. Create a *User Task* node connected to the *Start Event*. Give it the *Name* `Upload Document - #{requiredDocument}` and *Task Name* `upload-document`. The `#{requiredDocument}` syntax in the name will be replaced at runtime with value of the `requiredDocument` process variable. This will allow us to show different task names, depending on the document the user is required to upload.
-. Set our `adminUser` as the tasks *Actors*. In an enterprise implementation this would be the user-id of the client in the PAM system so he/she will be the person who gets the task assigned.
-. Add the input mapping:
-* *Name*: `htRequiredDocument`
-* *Data Type*: `String`
-* *Source*: `requiredDocument`
-We don't need to change this in our user task, so we don't need to define an output mapping for this variable.
-. Add the output mapping:
-* *Name*: `htUploadedDocument`
-* *Data Type*: `org.jbpm.document.Document`
-* *Source*: `uploadedDocument`
-This is the document the user will upload to the system.
-. Save the process
-+
-image::images/user-task-upload-document-properties.png[]
-+
-image::images/mi-after-upload-document-user-task.png[]
+```
+Status: 200 OK
+HTTP Headers:
+  Content-Type: application/json
+Body:
+{
+    "id": 1,
+    "name": "Test plan",
+    "description": "Evaluation Process Test Plan",
+    "sourceContainerId": "evaluation_1.0",
+    "targetProcessId": "evaluation",
+    "targetContainerId": "evaluation_1.1"
+}
+```
 
-=== Creating the Document Approval User Task
-The idea behind the `Document Approval` *User Task* is that the document uploaded by the user needs to be approved and accepted by an internal employee before the process can continue.
+## Deploy some processes to test the migration
 
-. Create a new *User Task* node connected to the `Upload Document` *User Task*. Give it the name `Approve Document - #{requiredDocument}` and *Task Name* `approve-document`. Again, the `#{requiredDocument}` placeholder will be replaced at runtime with the value of the `reuqiredDocument` process variable.
-. Set our `adminUser` as the tasks *Actors*. In an enterprise implememtation the task would be assigned to the group of employees qualified to approve these uploaded documents.
-. Add the input mapping:
-* *Name*: `htClient`
-* *Data Type*: `Client`
-* *Source*: `client`
-We don't need to change this in our user task, so we don't need to define an output mapping for this variable.
-. Add the input mapping:
-* *Name*: `htRequiredDocument`
-* *Data Type*: `String`
-* *Source*: `requiredDocument`
-We don't need to change this in our user task, so we don't need to define an output mapping for this variable.
-. Add the input mapping:
-* *Name*: `htUploadedDocument`
-* *Data Type*: `org.jbpm.document.Document`
-* *Source*: `uploadedDocument`
-We don't need to change the document either, so we don't need to define an output mapping for this variable either.
-. Add the output mapping:
-* *Name*: `htApproved`
-* *Data Type*: `Boolean`
-* *Source*: `approved`
-+
-image::images/approve-document-user-task-mapping.png[]
-+
-image::images/mi-after-approve-document-user-task.png[]
+1. Start a KIE Server
+1. Deploy two versions of the evaluation project (evaluation_1.0 and evaluation_1.1)
+1. Start one instance of the evaluation process (evaluation_1.0)
 
-=== Creating the Approval Decision Gateway and flows
-Depending on whether the uploaded document has been approved or not, we need to take a decision.
-For this we will use the *Data-based Exclusive (XOR)* gateway. This gateway allows us to, based on process variables or facts in the session,
-take decision on which path in the process to take.
+## Create a sync migration
 
-Enhance your subprocess model as show below, using the *Date-based Exclusive (XOR)* gateway and an *End Event*.
+```
+URL: http://localhost:8180/migrations
+Method: POST
+HTTP Headers:
+  Content-Type: application/json
+  Authorization: Basic a2VybWl0OnRoZWZyb2c=
+Body:
+{
+    "planId": 1,
+    "processInstanceIds": [1],
+    "kieserverId": "sample-server",
+    "execution": {
+   	 "type": "SYNC"
+    }
+}
+```
 
-image::images/upload-documents-mi-full.png[]
-+
-Now we need to create the conditional logic on the *Sequence Flows* going out of the *XOR* gateway.
-. Click on the arrow with the label `Yes` that connects to the *End Event* node. This is the route we want to take when the document is approved.
-. Open the properties panel and click on the *v* icon in the *Expression* field. This opens the expression editor.
-. Select *Process variable* `approved` and *Condition* `is true`.
+Response:
 
-image::images/sequence-flow-approved-true.png[]
+```
+Status: 200 OK
+HTTP Headers:
+  Content-Type: application/json
+Body:
+{
+    "id": 1,
+    "definition": {
+        "planId": 1,
+        "processInstanceIds": [1],
+        "kieserverId": "sample-server",
+        "requester": "kermit",
+        "execution": {
+            "type": "SYNC"
+        }
+    },
+    "createdAt": "2018-11-29T13:47:07.839Z",
+    "startedAt": "2018-11-29T13:47:07.839Z",
+    "finishedAt": "2018-11-29T13:47:07.874Z",
+    "status": "COMPLETED"
+}
+```
 
-We now have the option to either set the decision logic on the *Sequence Flow* labeled `No`, or we defined a *Default Gate* on the *XOR* gateway.
-We'll use latter option to show this specific construct in this lab.
-. Click on the *XOR* gateway on the right with the 2 outgoing flows and open the propeties panel.
-. Click on *Default Gate* and select the gate labelled `No`. Note that you will only see that text if you have properly labelled the outgoing connectors.
-If you have not labelled the connectors, you'll simply see their generated ids, which makes it default to verify whether you have configured the correct default gate.
+As it is a Synchronous migration, the result of the migration will be returned once it has finished.
 
-Finally, save the process.
+## Check the migration output
 
-This completes the full process definition of our Client Onboarding Enrichment process. To be sure everything is fine, we can run the validator.
-In the next lab we will create the Forms for our process and take the process for a test-drive.
+The following request will fetch the overall result of the migration
+
+Request:
+
+```
+URL: http://localhost:8180/migrations/1
+Method: GET
+HTTP Headers:
+  Content-Type: application/json
+  Authorization: Basic a2VybWl0OnRoZWZyb2c=
+```
+
+Response:
+
+```
+Status: 200 OK
+HTTP Headers:
+  Content-Type: application/json
+Body:
+{
+    "id": 1,
+    "definition": {
+        "planId": 1,
+        "processInstanceIds": [],
+        "kieserverId": "sample-server",
+        "requester": "kermit",
+        "execution": {
+            "type": "SYNC"
+        }
+    },
+    "createdAt": "2018-11-27T14:28:58.918Z",
+    "startedAt": "2018-11-27T14:28:59.861Z",
+    "finishedAt": "2018-11-27T14:29:00.167Z",
+    "status": "COMPLETED"
+}
+```
+
+To retrieve the individual results of the migration of each process instance
+
+Request:
+```
+URL: http://localhost:8180/migrations/1/results
+Method: GET
+HTTP Headers:
+  Content-Type: application/json
+  Authorization: Basic a2VybWl0OnRoZWZyb2c=
+```
+
+Response:
+```
+Status: 200 OK
+HTTP Headers:
+  Content-Type: application/json
+Body:
+[
+    {
+        "id": 1,
+        "migrationId": 3,
+        "processInstanceId": 5,
+        "startDate": "2018-12-18T11:16:26.779Z",
+        "endDate": "2018-12-18T11:16:26.906Z",
+        "successful": true,
+        "logs": [
+            "INFO Tue Dec 18 12:16:26 CET 2018 Variable instances updated = 1 for process instance id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Node instances updated = 3 for process instance id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Process instances updated = 1 for process instance id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Task variables updated = 1 for process instance id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Task audit updated = 1 for process instance id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Tasks updated = 1 for process instance id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Context info updated = 0 for process instance id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Executor Jobs updated = 0 for process instance id 5",
+            "WARN Tue Dec 18 12:16:26 CET 2018 Source and target process id is exactly the same (test.myprocess) it's recommended to use unique process ids",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Mapping: Node instance logs to be updated  = [1]",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Mapping: Node instance logs updated = 1 for node instance id 1",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Mapping: Task audit updated = 1 for task id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Mapping: Task updated = 1 for task id 5",
+            "INFO Tue Dec 18 12:16:26 CET 2018 Migration of process instance (5) completed successfully to process test.myprocess"
+        ]
+    },
+    {
+        "id": 2,
+        "migrationId": 3,
+        "processInstanceId": 6,
+        "startDate": "2018-12-18T11:16:26.992Z",
+        "endDate": "2018-12-18T11:16:27.039Z",
+        "successful": true,
+        "logs": [
+            "INFO Tue Dec 18 12:16:27 CET 2018 Variable instances updated = 1 for process instance id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Node instances updated = 3 for process instance id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Process instances updated = 1 for process instance id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Task variables updated = 1 for process instance id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Task audit updated = 1 for process instance id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Tasks updated = 1 for process instance id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Context info updated = 0 for process instance id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Executor Jobs updated = 0 for process instance id 6",
+            "WARN Tue Dec 18 12:16:27 CET 2018 Source and target process id is exactly the same (test.myprocess) it's recommended to use unique process ids",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Mapping: Node instance logs to be updated  = [1]",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Mapping: Node instance logs updated = 1 for node instance id 1",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Mapping: Task audit updated = 1 for task id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Mapping: Task updated = 1 for task id 6",
+            "INFO Tue Dec 18 12:16:27 CET 2018 Migration of process instance (6) completed successfully to process test.myprocess"
+        ]
+    }
+]
+```
+
+## Create an Async migration
+
+1. Start two more processes
+1. Trigger the migration of all the existing active processes
+
+Request:
+
+```
+URL: http://localhost:8180/migrations
+Method: POST
+HTTP Headers:
+  Content-Type: application/json
+  Authorization: Basic a2VybWl0OnRoZWZyb2c=
+Body:
+{
+    "planId": 1,
+    "processInstanceIds": [],
+    "kieserverId": "sample-server",
+    "execution": {
+   	 "type": "ASYNC",
+   	 "scheduledStartTime": "2018-12-11T12:35:00.000Z"
+    }
+}
+```
+
+Response:
+
+```
+Status: 202 Accepted
+HTTP Headers:
+  Content-Type: application/json
+Body:
+{
+    "id": 2,
+    "definition": {
+        "execution": {
+            "type": "ASYNC",
+            "scheduled_start_time": "2018-12-11T12:35:00.000Z"
+        },
+        "plan_id": 1,
+        "process_instance_ids": [],
+        "kieserver_id": "sample-server",
+    },
+    "status": "SCHEDULED",
+    "created_at": "2018-11-07T11:28:43.828Z",
+    "started_at": null,
+    "finished_at": null
+}
+```
+
+The migration status can be checked using the migrations api with the id returned as done before
