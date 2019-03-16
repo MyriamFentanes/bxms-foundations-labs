@@ -55,14 +55,38 @@ Is the execution of a defined plan, applied to a set of process instances. These
 
 
 
-We can now further improve the process by implementing the multi-instance sub-process and configuring the Business Rule task and User task.
+== Running the application
 
+As we mentioned before the Migration Service is standalone. For RHPAM 7.3 the backend of the service is implemented and the UI integrated to Business Central is in the roadmap for 7.4.
+The components of the service are shown in the diagram:
 
-== Configuring the Add Client Details user task.
-Now that we have defined the variables of our process, we can create the input and output mapping of these process variables to task variables.
-In PAM, process variables and task variables are de-coupled, which means that if you want to work on a certain piece of data as part of a *User Task*,
-you will need to map variable from the process instance onto the task. If you want changes made to this data as part of the task to be passed
-back to the process variable, you also need to define the output mapping from task variable to  process variable.
+image::images/process_migration_components.png[]
+
+Build
+
+```
+$ mvn clean package
+```
+
+# Run application
+
+It is a [Thorntail 2.x](http://docs.wildfly-swarm.io/2.2.1.Final/) application
+
+```
+$ java -jar target/process-migration-thorntail.jar
+```
+
+You can provide your custom configuration file. Check [project-defaults.yml](./src/main/resources/project-defaults.yml) to see an example
+
+```
+$ java -jar target/process-migration-thorntail.jar -s./myconfig.yml
+```
+
+Start the server on a different ports:
+
+```
+$ java -jar target/process-migration-thorntail.jar -Dswarm.network.socket-binding-groups.standard-sockets.port-offset=10
+```
 
 . In the `Enrichment Process`, click on the `Add Client Details` *User Task* and open the properties panel.
 . Click in the *Assignments* field on the *v* icon to open the *I/O Assignment* editor.
